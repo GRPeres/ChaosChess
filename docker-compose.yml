@@ -1,0 +1,7 @@
+services:
+  xadrez-caotico:
+    build: .
+    container_name: xadrez-caotico
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

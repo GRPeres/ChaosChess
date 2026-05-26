@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xadrez Caotico</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="game-area" aria-label="Tabuleiro">
+      <div class="topbar">
+        <div>
+          <h1>Xadrez Caotico</h1>
+          <p id="status">Carregando jogo...</p>
+        </div>
+        <div id="connectionBadge" class="badge">Local</div>
+      </div>
+
+      <div id="board" class="board"></div>
+    </section>
+
+    <aside class="controls" aria-label="Controles do jogo">
+      <div class="control-group">
+        <label for="playModeSelect">Modo de Jogo</label>
+        <select id="playModeSelect">
+          <option value="bot" selected>Contra Bot</option>
+          <option value="online">Online</option>
+        </select>
+      </div>
+
+      <div class="control-group bot-only">
+        <label for="botModeSelect">Estrategia do Bot</label>
+        <select id="botModeSelect">
+          <option value="random">Aleatorio</option>
+          <option value="stockfish">Stockfish</option>
+          <option value="mixed" selected>Misturado</option>
+        </select>
+      </div>
+
+      <div class="control-group bot-only" id="randomChanceContainer">
+        <label for="randomChanceRange">Chance Aleatoria no Modo Misturado</label>
+        <input type="range" id="randomChanceRange" min="0" max="100" value="50" />
+        <div class="value-text"><span id="randomChanceValue">50</span>% aleatorio</div>
+      </div>
+
+      <div class="control-group bot-only" id="difficultyContainer">
+        <label for="difficultyRange">Dificuldade Stockfish</label>
+        <input type="range" id="difficultyRange" min="1" max="20" value="10" />
+        <div class="value-text">Depth: <span id="difficultyValue">10</span></div>
+      </div>
+
+      <div class="control-group">
+        <label for="chaosModeSelect">Modo Especial</label>
+        <select id="chaosModeSelect">
+          <option value="normal" selected>Normal</option>
+          <option value="swapOnCapture">Trocar lado ao capturar</option>
+        </select>
+        <div class="warning">Ao capturar, o jogador troca de lado imediatamente.</div>
+      </div>
+
+      <div class="button-row">
+        <button id="findMatchBtn" type="button" class="online-only">Encontrar Partida</button>
+        <button id="leaveMatchBtn" type="button" class="online-only secondary">Sair</button>
+        <button id="restartBtn" type="button">Reiniciar Jogo</button>
+      </div>
+    </aside>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
