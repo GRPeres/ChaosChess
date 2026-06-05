@@ -74,7 +74,6 @@ export class ChessGame {
 
     if (move === null) return 'snapback';
 
-    this.board.position(this.game.fen());
     this.handlePostMove(move);
 
     if (this.ui.playModeSelect.value === PlayMode.ONLINE) {
