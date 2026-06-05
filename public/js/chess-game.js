@@ -1,4 +1,4 @@
-import { ChaosMode, PlayMode } from './modes.js';
+import { ChaosMode, PlayMode, TimeMode } from './modes.js';
 
 export class ChessGame {
   constructor({ ui, onBotTurn, onOnlineMove }) {
@@ -43,7 +43,7 @@ export class ChessGame {
   }
 
   applyRemoteMove(move) {
-    const playedMove = this.game.move(move);
+    const playedMove = this.playMove(move, { ignoreTurn: this.isRealTimeMode() });
     if (!playedMove) return false;
 
     this.board.position(this.game.fen());
@@ -56,19 +56,21 @@ export class ChessGame {
 
     const isWhitePiece = piece.startsWith('w');
     const isOnline = this.ui.playModeSelect.value === PlayMode.ONLINE;
+    const isRealTime = this.isRealTimeMode();
     const activeColor = isOnline ? this.onlineColor : this.playerColor;
 
-    if (!activeColor || this.game.turn() !== activeColor) return false;
+    if (!activeColor) return false;
+    if (!isRealTime && this.game.turn() !== activeColor) return false;
     if (activeColor === 'w' && !isWhitePiece) return false;
     if (activeColor === 'b' && isWhitePiece) return false;
-    if (isOnline && this.isOnlineTurnLocked) return false;
+    if (isOnline && !isRealTime && this.isOnlineTurnLocked) return false;
 
     return true;
   }
 
   onDrop(source, target) {
     const moveRequest = { from: source, to: target, promotion: 'q' };
-    const move = this.game.move(moveRequest);
+    const move = this.playMove(moveRequest, { ignoreTurn: this.isRealTimeMode() });
 
     if (move === null) return 'snapback';
 
@@ -81,16 +83,42 @@ export class ChessGame {
         to: move.to,
         promotion: move.promotion || 'q'
       });
-      this.isOnlineTurnLocked = this.game.turn() !== this.onlineColor;
+      this.isOnlineTurnLocked = !this.isRealTimeMode() && this.game.turn() !== this.onlineColor;
       this.updateStatus();
       return undefined;
     }
 
-    if (!this.game.game_over() && this.game.turn() !== this.playerColor) {
+    if (!this.game.game_over() && (this.isRealTimeMode() || this.game.turn() !== this.playerColor)) {
       this.onBotTurn?.();
     }
 
     return undefined;
+  }
+
+  playMove(moveRequest, { ignoreTurn = false } = {}) {
+    if (!ignoreTurn) {
+      return this.game.move(moveRequest);
+    }
+
+    const piece = this.game.get(moveRequest.from);
+    if (!piece) return null;
+
+    const realtimeGame = new Chess(this.withActiveTurn(this.game.fen(), piece.color));
+    const move = realtimeGame.move(moveRequest);
+    if (!move) return null;
+
+    this.game.load(realtimeGame.fen());
+    return move;
+  }
+
+  withActiveTurn(fen, activeTurn) {
+    const parts = fen.split(' ');
+    parts[1] = activeTurn;
+    return parts.join(' ');
+  }
+
+  isRealTimeMode() {
+    return this.ui.timeModeSelect.value === TimeMode.REAL_TIME;
   }
 
   handlePostMove(move, { remote = false } = {}) {
@@ -106,7 +134,7 @@ export class ChessGame {
 
       window.setTimeout(() => {
         this.updateStatus();
-        if (this.ui.playModeSelect.value === PlayMode.BOT && !this.game.game_over() && this.game.turn() !== this.playerColor) {
+        if (this.ui.playModeSelect.value === PlayMode.BOT && !this.game.game_over() && (this.isRealTimeMode() || this.game.turn() !== this.playerColor)) {
           this.onBotTurn?.();
         }
       }, 250);
@@ -136,11 +164,18 @@ export class ChessGame {
     if (this.ui.playModeSelect.value === PlayMode.ONLINE) {
       if (!this.onlineColor) {
         this.ui.setStatus('Entre em uma partida online para comecar.');
+      } else if (this.isRealTimeMode()) {
+        this.ui.setStatus(`Tempo real: jogue com ${this.onlineColor === 'w' ? 'Brancas' : 'Pretas'} quando quiser${this.game.in_check() ? ' (Xeque)' : ''}`);
       } else if (this.game.turn() === this.onlineColor) {
         this.ui.setStatus(`Sua vez (${this.onlineColor === 'w' ? 'Brancas' : 'Pretas'})${this.game.in_check() ? ' (Xeque)' : ''}`);
       } else {
         this.ui.setStatus(`Vez do oponente${this.game.in_check() ? ' (Xeque)' : ''}`);
       }
+      return;
+    }
+
+    if (this.isRealTimeMode()) {
+      this.ui.setStatus(`Tempo real: voce controla ${this.playerColor === 'w' ? 'Brancas' : 'Pretas'}${this.game.in_check() ? ' (Xeque)' : ''}`);
       return;
     }
 

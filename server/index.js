@@ -9,7 +9,8 @@ const port = Number.parseInt(process.env.PORT || '8080', 10);
 const rootDir = resolve(fileURLToPath(new URL('../public/', import.meta.url)));
 const clients = new Map();
 const rooms = new Map();
-let waitingClientId = null;
+const waitingClientsByTimeMode = new Map();
+const supportedTimeModes = new Set(['turns', 'realTime']);
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -62,12 +63,16 @@ wss.on('connection', (socket) => {
   socket.on('close', () => {
     leaveMatch(id);
     clients.delete(id);
-    if (waitingClientId === id) waitingClientId = null;
+    removeWaitingClient(id);
   });
 });
 
 function handleMessage(id, message) {
   if (message.type === 'findMatch') {
+    const client = clients.get(id);
+    if (client) {
+      client.requestedTimeMode = message.timeMode;
+    }
     findMatch(id);
     return;
   }
@@ -87,28 +92,33 @@ function findMatch(id) {
   if (!client) return;
 
   leaveMatch(id, { silent: true });
+  const timeMode = supportedTimeModes.has(client.requestedTimeMode) ? client.requestedTimeMode : 'turns';
+  client.requestedTimeMode = timeMode;
+
+  const waitingClientId = waitingClientsByTimeMode.get(timeMode);
 
   if (!waitingClientId || waitingClientId === id || !clients.has(waitingClientId)) {
-    waitingClientId = id;
-    send(id, { type: 'waiting' });
+    waitingClientsByTimeMode.set(timeMode, id);
+    send(id, { type: 'waiting', timeMode });
     return;
   }
 
   const opponentId = waitingClientId;
-  waitingClientId = null;
+  waitingClientsByTimeMode.delete(timeMode);
   const roomId = randomUUID();
 
   rooms.set(roomId, {
     id: roomId,
     whiteId: opponentId,
-    blackId: id
+    blackId: id,
+    timeMode
   });
 
   clients.get(opponentId).roomId = roomId;
   client.roomId = roomId;
 
-  send(opponentId, { type: 'matchFound', roomId, color: 'w' });
-  send(id, { type: 'matchFound', roomId, color: 'b' });
+  send(opponentId, { type: 'matchFound', roomId, color: 'w', timeMode });
+  send(id, { type: 'matchFound', roomId, color: 'b', timeMode });
 }
 
 function relayMove(id, message) {
@@ -125,6 +135,7 @@ function relayMove(id, message) {
 }
 
 function leaveMatch(id, options = {}) {
+  removeWaitingClient(id);
   const client = clients.get(id);
   if (!client?.roomId) return;
 
@@ -141,6 +152,14 @@ function leaveMatch(id, options = {}) {
 
   rooms.delete(room.id);
   client.roomId = null;
+}
+
+function removeWaitingClient(id) {
+  for (const [timeMode, waitingClientId] of waitingClientsByTimeMode.entries()) {
+    if (waitingClientId === id) {
+      waitingClientsByTimeMode.delete(timeMode);
+    }
+  }
 }
 
 function send(id, message) {

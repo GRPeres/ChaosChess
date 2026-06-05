@@ -30,6 +30,15 @@
         </select>
       </div>
 
+      <div class="control-group">
+        <label for="timeModeSelect">Ritmo</label>
+        <select id="timeModeSelect">
+          <option value="turns" selected>Turnos</option>
+          <option value="realTime">Tempo real</option>
+        </select>
+        <div class="warning">No tempo real, o turno nao bloqueia jogadas legais.</div>
+      </div>
+
       <div class="control-group bot-only">
         <label for="botModeSelect">Estrategia do Bot</label>
         <select id="botModeSelect">

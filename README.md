@@ -8,6 +8,7 @@ Xadrez Caotico is a lightweight browser chess app with local bot play, online ma
 - Choose bot strategy: random, Stockfish, or mixed
 - Adjust Stockfish depth and mixed-mode randomness
 - Play online through a simple matchmaking queue
+- Switch between normal turn-based chess and real-time chess
 - Use the special chaos mode where captures swap the side controlled by the player
 - Host with Node.js or Docker
 - Minimal framework usage and a modular project structure
@@ -16,21 +17,30 @@ Xadrez Caotico is a lightweight browser chess app with local bot play, online ma
 
 Open the app in a browser and choose a game mode from the control panel.
 
+### Rhythm
+
+The `Ritmo` selector controls how turns work:
+
+- `Turnos`: classic chess timing. A player can only move when it is their turn.
+- `Tempo real`: legal moves are still enforced, but turn order does not block movement. In online mode, each player can move their assigned color whenever they see an opening.
+
 ### Against Bot
 
 1. Select `Contra Bot`.
-2. Choose the bot strategy.
-3. Adjust difficulty or randomness if available.
-4. Move pieces on the board by dragging them.
-5. Use `Reiniciar Jogo` to start over.
+2. Choose `Turnos` or `Tempo real`.
+3. Choose the bot strategy.
+4. Adjust difficulty or randomness if available.
+5. Move pieces on the board by dragging them.
+6. Use `Reiniciar Jogo` to start over.
 
 ### Online
 
 1. Select `Online`.
-2. Click `Encontrar Partida`.
-3. Leave the browser tab open while waiting for another player.
-4. When a match is found, one player receives white and the other receives black.
-5. Moves are sent live through the server.
+2. Choose `Turnos` or `Tempo real`.
+3. Click `Encontrar Partida`.
+4. Leave the browser tab open while waiting for another player.
+5. When a match is found, one player receives white and the other receives black.
+6. Moves are sent live through the server.
 
 Online mode requires a browser with WebSocket support and a reachable server. If the app is behind a reverse proxy, the proxy must allow WebSocket upgrades.
 
@@ -152,6 +162,7 @@ package.json
 - The chessboard pieces and chess libraries are also loaded from public CDNs.
 - Online games are currently in-memory only. Restarting the server clears active rooms and matchmaking state.
 - The matchmaking server is intentionally simple: it pairs the next two waiting players.
+- Real-time mode is a chess variant. It removes the turn-order lock, but still uses chess move validation for the piece being moved.
 
 ## License
 

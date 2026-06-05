@@ -38,6 +38,11 @@ ui.playModeSelect.addEventListener('change', () => {
   }
 });
 
+ui.timeModeSelect.addEventListener('change', () => {
+  chessGame.isOnlineTurnLocked = false;
+  chessGame.updateStatus();
+});
+
 ui.findMatchBtn.addEventListener('click', () => {
   onlineClient.findMatch();
 });

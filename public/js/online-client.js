@@ -22,7 +22,7 @@ export class OnlineClient {
     this.socket.addEventListener('open', () => {
       this.ui.setConnection('Online', true);
       if (this.pendingFindMatch) {
-        this.send({ type: 'findMatch' });
+        this.send({ type: 'findMatch', timeMode: this.ui.timeModeSelect.value });
         this.pendingFindMatch = false;
         this.ui.setStatus('Procurando oponente...');
       } else {
@@ -44,10 +44,12 @@ export class OnlineClient {
 
   findMatch() {
     this.connect();
+    if (!window.WebSocket) return;
+
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
       this.pendingFindMatch = true;
     } else {
-      this.send({ type: 'findMatch' });
+      this.send({ type: 'findMatch', timeMode: this.ui.timeModeSelect.value });
     }
     this.ui.setStatus('Procurando oponente...');
   }
@@ -78,6 +80,9 @@ export class OnlineClient {
 
     if (message.type === 'matchFound') {
       this.roomId = message.roomId;
+      if (message.timeMode) {
+        this.ui.timeModeSelect.value = message.timeMode;
+      }
       this.chessGame.reset({ preserveOnlineColor: true });
       this.chessGame.setOnlineColor(message.color);
       this.ui.setStatus(`Partida encontrada. Voce joga de ${message.color === 'w' ? 'Brancas' : 'Pretas'}.`);

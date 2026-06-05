@@ -13,3 +13,8 @@ export const ChaosMode = Object.freeze({
   NORMAL: 'normal',
   SWAP_ON_CAPTURE: 'swapOnCapture'
 });
+
+export const TimeMode = Object.freeze({
+  TURNS: 'turns',
+  REAL_TIME: 'realTime'
+});

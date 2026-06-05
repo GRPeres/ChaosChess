@@ -5,6 +5,7 @@ export function createUi() {
     status: document.getElementById('status'),
     connectionBadge: document.getElementById('connectionBadge'),
     playModeSelect: document.getElementById('playModeSelect'),
+    timeModeSelect: document.getElementById('timeModeSelect'),
     botModeSelect: document.getElementById('botModeSelect'),
     chaosModeSelect: document.getElementById('chaosModeSelect'),
     difficultyRange: document.getElementById('difficultyRange'),
